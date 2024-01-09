@@ -10,14 +10,16 @@ import java.util.stream.*;
 public class WeatherMessageSaver {
 
     private final String path;
+    private WeatherDataBase weatherDataBase;
 
     public WeatherMessageSaver(String path) {
         this.path = path;
+        this.weatherDataBase = new WeatherDataBase(path);
     }
 
     public void saveMessages() throws BusinessUnitExecutionException {
         try {
-            processEventFiles(path);
+            processEventFiles(path, weatherDataBase);
             ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(ActiveMQConnectionFactory.DEFAULT_BROKER_URL);
             Connection connection = connectionFactory.createConnection();
             connection.start();
@@ -46,14 +48,14 @@ public class WeatherMessageSaver {
         }
     }
 
-    private static void processEventFiles(String path) throws BusinessUnitExecutionException {
+    private static void processEventFiles(String path, WeatherDataBase weatherDataBase) throws BusinessUnitExecutionException {
         try {
             String directoryPath = path + "/datalake/eventstore/prediction.Weather/prediction-provider";
             Stream<Path> files = Files.list(Path.of(directoryPath)).filter(p -> p.toString().endsWith(".events"));
 
             files.forEach(filePath -> {
                 try {
-                    processFile(filePath, path);
+                    processFile(filePath, weatherDataBase);
                 } catch (BusinessUnitExecutionException e) {
                     System.out.println("Error processing files");;
                 }
@@ -63,11 +65,10 @@ public class WeatherMessageSaver {
         }
     }
 
-    private static void processFile(Path filePath, String path) throws BusinessUnitExecutionException {
+    private static void processFile(Path filePath, WeatherDataBase weatherDataBase) throws BusinessUnitExecutionException {
         try (Stream<String> lines = Files.lines(filePath)) {
             lines.forEach(line -> {
                 try {
-                    WeatherDataBase weatherDataBase = new WeatherDataBase(path);
                     weatherDataBase.save(line);
                 } catch (BusinessUnitExecutionException e) {
                     System.out.println("Error while saving");;
@@ -78,4 +79,5 @@ public class WeatherMessageSaver {
         }
     }
 }
+
 
