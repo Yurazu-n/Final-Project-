@@ -21,7 +21,6 @@ public class WeatherStoreBuilder {
         this.path = path;
     }
 
-    //TODO encapsular excepcion
     public void weatherStoreBuild() throws MyEventException {
         String url = ActiveMQConnection.DEFAULT_BROKER_URL;
         MessageConsumer consumer = null;
